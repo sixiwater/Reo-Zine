@@ -45,8 +45,8 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
     >
       {/* 
          Card Container 
-         - max-h to ensure 16px padding on mobile (100vh - 32px)
-         - Flex layout for internal structure
+         - max-h: constrained to screen height minus padding (p-4 = 16px * 2 = 32px)
+         - ensures 16px gap from edges at all times
       */}
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -96,7 +96,7 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
         {/* Content Section */}
         <div className="flex-1 flex flex-col min-h-0 relative bg-white">
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-10">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-hide">
               <div className="space-y-4 md:space-y-6 pb-12"> {/* Padding bottom for nav controls */}
                 <div className="flex flex-col md:flex-row md:justify-between md:items-baseline border-b border-stone-200 pb-3 gap-1">
                    <span className="text-xs tracking-[0.2em] uppercase text-stone-400 font-sans flex gap-1 justify-center md:justify-start">
