@@ -1,12 +1,14 @@
 
 import { Memory } from './types';
 
-// Approximate bounds of China for simplified projection
+// Adjusted bounds to focus on the active region (East/Central China)
+// This effectively "zooms in" the map logic so markers spread out more.
+// The SVG path in MapView should visually match these relative proportions.
 export const MAP_BOUNDS = {
-  minLon: 98, 
-  maxLon: 125,
-  minLat: 20,
-  maxLat: 42
+  minLon: 95.0,  // Cut off far west (Tibet/Xinjiang) empty space
+  maxLon: 135.0, // Include East Sea
+  minLat: 18.0,  // Hainan
+  maxLat: 50.0   // Heilongjiang
 };
 
 export const MEMORIES: Memory[] = [
@@ -34,7 +36,7 @@ export const MEMORIES: Memory[] = [
     year: 2018,
     displayYear: "2018",
     city: "Hangzhou",
-    coords: [120.20, 30.20], // Slight offset
+    coords: [120.15, 30.28], 
     title: "Carefree Days",
     tag: "Youth",
     image: "https://picsum.photos/seed/2018_fun/600/800",
@@ -73,7 +75,7 @@ export const MEMORIES: Memory[] = [
     year: 2021, 
     displayYear: "2021", 
     city: "Hangzhou", 
-    coords: [120.15, 30.30], 
+    coords: [120.15, 30.28], 
     title: "The Silent Summer", 
     tag: "Secret",
     image: "https://picsum.photos/seed/2021_silent/600/800",
@@ -121,7 +123,7 @@ export const MEMORIES: Memory[] = [
     year: 2025, 
     displayYear: "2025", 
     city: "Iceland", 
-    coords: [110.00, 35.00], // Fake coords to keep it on map relative to China visual or just off-map
+    coords: [130.00, 35.00], // Visual placement in the "East Sea" area
     title: "Missing Bridesmaid", 
     tag: "Marriage",
     image: "https://picsum.photos/seed/2025_ice/600/800",

@@ -2,20 +2,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useContent } from '../context/ContentContext';
+import { Memory } from '../types';
 
 interface PolaroidCardProps {
-  memoryIndex: number;
+  memory: Memory;
   onClose: () => void;
 }
 
-const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => {
-  const { memories } = useContent();
-  const memory = memories[memoryIndex];
+const PolaroidCard: React.FC<PolaroidCardProps> = ({ memory, onClose }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [storyIndex, setStoryIndex] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  // If data is missing (e.g. index out of bounds), don't render
   if (!memory) return null;
 
   const currentStory = memory.stories[storyIndex];
@@ -25,6 +23,7 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
     e.stopPropagation();
     if (storyIndex < memory.stories.length - 1) {
       setStoryIndex(prev => prev + 1);
+      setImageLoaded(false); // Reset load state for new image
     }
   };
 
@@ -32,6 +31,7 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
     e.stopPropagation();
     if (storyIndex > 0) {
       setStoryIndex(prev => prev - 1);
+      setImageLoaded(false);
     }
   };
 
@@ -40,24 +40,27 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4"
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 p-4 will-change-opacity"
       onClick={onClose}
+      style={{ 
+        // Removing backdrop-filter: blur because it causes massive lag 
+        // when rendered over complex SVG maps on mobile devices.
+        backdropFilter: 'none', 
+        WebkitBackdropFilter: 'none' 
+      }}
     >
-      {/* 
-         Card Container 
-         - max-h: constrained to screen height minus padding (p-4 = 16px * 2 = 32px)
-         - ensures 16px gap from edges at all times
-      */}
       <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+        transition={{ type: "spring", damping: 25, stiffness: 350 }}
         className={`
           bg-white shadow-2xl relative overflow-hidden rounded-sm flex flex-col md:flex-row
           w-full max-w-sm md:max-w-4xl 
           max-h-[calc(100vh-32px)]
           md:h-auto md:max-h-[85vh]
+          will-change-transform
         `}
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,32 +75,37 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
         {/* Image Section */}
         <div 
           className={`
-            relative bg-gray-100 overflow-hidden cursor-pointer group flex-shrink-0
-            w-full aspect-[4/3] md:w-5/12 md:h-auto md:aspect-auto
+            relative bg-stone-100 overflow-hidden cursor-pointer group flex-shrink-0
+            w-full aspect-[4/3] md:w-5/12 md:h-auto md:aspect-auto flex items-center justify-center
           `}
           onClick={() => setIsZoomed(!isZoomed)}
         >
+             {/* Loading Skeleton */}
+             {!imageLoaded && (
+               <div className="absolute inset-0 bg-stone-200 animate-pulse" />
+             )}
+
              <motion.img 
-                key={displayImage} // Re-animate on image change
+                key={displayImage} 
                 src={displayImage} 
                 alt={memory.title}
-                initial={{ opacity: 0.8 }}
-                animate={{ opacity: 1, scale: isZoomed ? 1.5 : 1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full h-full object-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: imageLoaded ? 1 : 0, scale: isZoomed ? 1.5 : 1 }}
+                transition={{ duration: 0.4 }}
+                onLoad={() => setImageLoaded(true)}
+                className="w-full h-full object-cover relative z-10"
+                loading="eager"
              />
-
-             {/* Zoom Hint */}
-             <div className="absolute bottom-3 right-3 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-black/20 rounded-full p-1.5 backdrop-blur-md">
+             
+             <div className="absolute bottom-3 right-3 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-black/20 rounded-full p-1.5 backdrop-blur-md z-20">
                 {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
              </div>
         </div>
 
         {/* Content Section */}
         <div className="flex-1 flex flex-col min-h-0 relative bg-white">
-            {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-hide">
-              <div className="space-y-4 md:space-y-6 pb-12"> {/* Padding bottom for nav controls */}
+              <div className="space-y-4 md:space-y-6 pb-12"> 
                 <div className="flex flex-col md:flex-row md:justify-between md:items-baseline border-b border-stone-200 pb-3 gap-1">
                    <span className="text-xs tracking-[0.2em] uppercase text-stone-400 font-sans flex gap-1 justify-center md:justify-start">
                       {memory.displayYear}
@@ -111,20 +119,25 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
                   {memory.title}
                 </h3>
                 
-                <div className="flex justify-center md:justify-start">
+                <div className="flex justify-center md:justify-start gap-2 flex-wrap">
                    <span className="px-3 py-1 border border-stone-300 rounded-full text-[10px] uppercase tracking-widest text-stone-500 font-sans bg-stone-50">
                      #{memory.tag}
                    </span>
+                   {memory.stories.length > 1 && (
+                      <span className="px-3 py-1 border border-stone-300 rounded-full text-[10px] uppercase tracking-widest text-stone-500 font-sans bg-stone-50">
+                        {memory.stories.length} Stories
+                      </span>
+                   )}
                 </div>
 
                 <div className="relative min-h-[100px]">
                    <AnimatePresence mode="wait">
                      <motion.div
                        key={storyIndex}
-                       initial={{ opacity: 0, x: 10 }}
+                       initial={{ opacity: 0, x: 5 }}
                        animate={{ opacity: 1, x: 0 }}
-                       exit={{ opacity: 0, x: -10 }}
-                       transition={{ duration: 0.3 }}
+                       exit={{ opacity: 0, x: -5 }}
+                       transition={{ duration: 0.2 }}
                      >
                         <h4 className="font-bold text-lg mb-2 text-stone-800">{currentStory.title}</h4>
                         <p className="text-base md:text-lg leading-loose text-stone-600 font-sans-body whitespace-pre-wrap">
@@ -136,7 +149,7 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({ memoryIndex, onClose }) => 
               </div>
             </div>
 
-            {/* Story Navigation Footer (Fixed at bottom of content area) */}
+            {/* Navigation Footer */}
             {memory.stories.length > 1 && (
                 <div className="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-stone-100 flex justify-between items-center z-10">
                     <button 
