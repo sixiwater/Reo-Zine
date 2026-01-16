@@ -1,49 +1,21 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Map, ScrollText, RotateCcw } from 'lucide-react';
+import { Map, ScrollText } from 'lucide-react';
 import Landing from './components/Landing';
 import MapView from './components/MapView';
 import TimelineView from './components/TimelineView';
 import AudioPlayer from './components/AudioPlayer';
-import { ViewMode, Memory } from './types';
+import { ViewMode } from './types';
 import { ContentContext } from './context/ContentContext';
-import { MEMORIES as DEFAULT_MEMORIES } from './constants';
+import { MEMORIES } from './constants';
 
 const App: React.FC = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   
-  // State for editable content
-  const [memories, setMemories] = useState<Memory[]>(() => {
-    // Try to load from local storage
-    try {
-      const saved = localStorage.getItem('echoes_memories');
-      return saved ? JSON.parse(saved) : DEFAULT_MEMORIES;
-    } catch (e) {
-      console.error("Failed to load memories", e);
-      return DEFAULT_MEMORIES;
-    }
-  });
-
-  // Persist to local storage whenever memories change
-  useEffect(() => {
-    localStorage.setItem('echoes_memories', JSON.stringify(memories));
-  }, [memories]);
-
-  const updateMemory = (index: number, field: keyof Memory, value: string) => {
-    setMemories(prev => {
-      const newMemories = [...prev];
-      newMemories[index] = { ...newMemories[index], [field]: value };
-      return newMemories;
-    });
-  };
-
-  const resetMemories = () => {
-    if (window.confirm("Reset all content to original defaults? This cannot be undone.")) {
-      setMemories(DEFAULT_MEMORIES);
-      window.location.reload(); 
-    }
-  };
+  // Use static memories from constants for the final presentation
+  const memories = MEMORIES;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -52,7 +24,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <ContentContext.Provider value={{ memories, updateMemory, resetMemories }}>
+    <ContentContext.Provider value={{ memories }}>
       <div className="w-full h-screen overflow-hidden text-stone-800 antialiased selection:bg-stone-200 selection:text-stone-900">
         <AnimatePresence mode="wait">
           {!hasStarted ? (
@@ -76,20 +48,11 @@ const App: React.FC = () => {
             >
               {/* Header / Nav Switch */}
               <header className="absolute top-0 left-0 w-full z-40 p-6 flex justify-between items-center pointer-events-none">
-                 <div className="font-serif font-bold text-lg pointer-events-auto text-stone-800/80 cursor-default">
+                 <div className="font-serif font-bold text-lg pointer-events-auto text-stone-800/80 cursor-default tracking-wide">
                    Echoes.
                  </div>
                  
                  <div className="flex gap-2 pointer-events-auto">
-                    {/* Reset Button (Hidden feature mostly) */}
-                    <button 
-                      onClick={resetMemories}
-                      className="bg-white/90 backdrop-blur shadow-sm rounded-full p-3 border border-stone-200 text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                      title="Reset Content"
-                    >
-                      <RotateCcw size={18} />
-                    </button>
-
                     <div className="bg-white/90 backdrop-blur shadow-sm rounded-full p-1 flex space-x-1 border border-stone-200">
                       <button
                         onClick={() => setViewMode('map')}
