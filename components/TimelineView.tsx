@@ -5,123 +5,8 @@ import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Memory } from '../types';
 
-const TimelineView: React.FC = () => {
-  const { memories } = useContent();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activeYear, setActiveYear] = useState(memories[0]?.year || 2017);
-
-  // Helper to scroll to a specific memory
-  const scrollToMemory = (year: number) => {
-    const element = document.getElementById(`memory-${year}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setActiveYear(year);
-    }
-  };
-
-  // Detect active section on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      // We check all years 2017-2026
-      const years = Array.from({ length: 10 }, (_, i) => 2017 + i);
-      
-      const scrollPosition = containerRef.current.scrollTop + (window.innerHeight / 3);
-      
-      let currentActive = activeYear;
-
-      for (let i = years.length - 1; i >= 0; i--) {
-        const year = years[i];
-        const section = document.getElementById(`memory-${year}`);
-        if (section && section.offsetTop <= scrollPosition) {
-          currentActive = year;
-          break;
-        }
-      }
-      if (currentActive !== activeYear) {
-          setActiveYear(currentActive);
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-    }
-    return () => container?.removeEventListener('scroll', handleScroll);
-  }, [memories, activeYear]);
-
-  // Generate full year range 2017-2026
-  const timelineYears = Array.from({ length: 10 }, (_, i) => 2017 + i);
-
-  return (
-    <div className="w-full h-full relative bg-[#fdfbf7]">
-      {/* Scrollable Container */}
-      <div 
-        ref={containerRef}
-        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth scrollbar-hide"
-      >
-        {timelineYears.map((year, index) => {
-          // Find memory for this year
-          const memory = memories.find(m => m.year === year);
-          
-          if (!memory) {
-             // Fallback for years without data (though our constants cover all now)
-             return (
-                 <section key={year} id={`memory-${year}`} className="w-full h-full snap-start flex items-center justify-center bg-[#fdfbf7] p-6">
-                     <div className="text-stone-300 text-6xl font-serif opacity-20">{year}</div>
-                 </section>
-             )
-          }
-
-          const isSecret = memory.tag === 'Secret';
-          const bgClass = isSecret ? 'bg-stone-900 text-stone-100' : 'bg-[#fdfbf7] text-stone-900';
-          const textMuted = isSecret ? 'text-stone-400' : 'text-stone-500';
-
-          return (
-            <TimelineSection 
-                key={year} 
-                memory={memory} 
-                bgClass={bgClass} 
-                textMuted={textMuted}
-                isFirst={index === 0} 
-            />
-          );
-        })}
-        
-        {/* Padding for last item so it can scroll up */}
-        <div className="h-32 w-full bg-[#fdfbf7]"></div>
-      </div>
-
-      {/* Navigation Ruler */}
-      <div className="absolute bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-stone-200 z-30 h-20 flex flex-col justify-center">
-         <div className="w-full overflow-x-auto scrollbar-hide px-[50vw]"> 
-            <div className="flex items-end space-x-8 md:space-x-12 mx-auto w-max px-8">
-            {timelineYears.map((year) => {
-                const isActive = activeYear === year;
-                return (
-                    <button
-                        key={year}
-                        onClick={() => scrollToMemory(year)}
-                        className={`group flex flex-col items-center gap-2 transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-40 hover:opacity-70'}`}
-                    >
-                        <div className={`text-xs md:text-sm font-serif font-bold ${isActive ? 'text-stone-900' : 'text-stone-500'}`}>
-                            {year}
-                        </div>
-                        {/* Tick Mark */}
-                        <div className={`w-0.5 transition-all duration-300 ${isActive ? 'h-6 bg-stone-900' : 'h-3 bg-stone-400'}`}></div>
-                    </button>
-                );
-            })}
-            </div>
-         </div>
-         {/* Center indicator line */}
-         <div className="absolute bottom-0 left-1/2 w-0.5 h-4 bg-red-500/0 transform -translate-x-1/2 pointer-events-none"></div> 
-      </div>
-    </div>
-  );
-};
-
 // Extracted Component for Section Logic (Carousel)
+// Defined before TimelineView to satisfy linter rules about use-before-define
 const TimelineSection: React.FC<{
     memory: Memory, 
     bgClass: string, 
@@ -243,6 +128,122 @@ const TimelineSection: React.FC<{
             )}
         </section>
     );
+};
+
+const TimelineView: React.FC = () => {
+  const { memories } = useContent();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeYear, setActiveYear] = useState(memories[0]?.year || 2017);
+
+  // Helper to scroll to a specific memory
+  const scrollToMemory = (year: number) => {
+    const element = document.getElementById(`memory-${year}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setActiveYear(year);
+    }
+  };
+
+  // Detect active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      // We check all years 2017-2026
+      const years = Array.from({ length: 10 }, (_, i) => 2017 + i);
+      
+      const scrollPosition = containerRef.current.scrollTop + (window.innerHeight / 3);
+      
+      let currentActive = activeYear;
+
+      for (let i = years.length - 1; i >= 0; i--) {
+        const year = years[i];
+        const section = document.getElementById(`memory-${year}`);
+        if (section && section.offsetTop <= scrollPosition) {
+          currentActive = year;
+          break;
+        }
+      }
+      if (currentActive !== activeYear) {
+          setActiveYear(currentActive);
+      }
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    return () => container?.removeEventListener('scroll', handleScroll);
+  }, [memories, activeYear]);
+
+  // Generate full year range 2017-2026
+  const timelineYears = Array.from({ length: 10 }, (_, i) => 2017 + i);
+
+  return (
+    <div className="w-full h-full relative bg-[#fdfbf7]">
+      {/* Scrollable Container */}
+      <div 
+        ref={containerRef}
+        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth scrollbar-hide"
+      >
+        {timelineYears.map((year, index) => {
+          // Find memory for this year
+          const memory = memories.find(m => m.year === year);
+          
+          if (!memory) {
+             // Fallback for years without data (though our constants cover all now)
+             return (
+                 <section key={year} id={`memory-${year}`} className="w-full h-full snap-start flex items-center justify-center bg-[#fdfbf7] p-6">
+                     <div className="text-stone-300 text-6xl font-serif opacity-20">{year}</div>
+                 </section>
+             )
+          }
+
+          const isSecret = memory.tag === 'Secret';
+          const bgClass = isSecret ? 'bg-stone-900 text-stone-100' : 'bg-[#fdfbf7] text-stone-900';
+          const textMuted = isSecret ? 'text-stone-400' : 'text-stone-500';
+
+          return (
+            <TimelineSection 
+                key={year} 
+                memory={memory} 
+                bgClass={bgClass} 
+                textMuted={textMuted}
+                isFirst={index === 0} 
+            />
+          );
+        })}
+        
+        {/* Padding for last item so it can scroll up */}
+        <div className="h-32 w-full bg-[#fdfbf7]"></div>
+      </div>
+
+      {/* Navigation Ruler */}
+      <div className="absolute bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-stone-200 z-30 h-20 flex flex-col justify-center">
+         <div className="w-full overflow-x-auto scrollbar-hide px-[50vw]"> 
+            <div className="flex items-end space-x-8 md:space-x-12 mx-auto w-max px-8">
+            {timelineYears.map((year) => {
+                const isActive = activeYear === year;
+                return (
+                    <button
+                        key={year}
+                        onClick={() => scrollToMemory(year)}
+                        className={`group flex flex-col items-center gap-2 transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-40 hover:opacity-70'}`}
+                    >
+                        <div className={`text-xs md:text-sm font-serif font-bold ${isActive ? 'text-stone-900' : 'text-stone-500'}`}>
+                            {year}
+                        </div>
+                        {/* Tick Mark */}
+                        <div className={`w-0.5 transition-all duration-300 ${isActive ? 'h-6 bg-stone-900' : 'h-3 bg-stone-400'}`}></div>
+                    </button>
+                );
+            })}
+            </div>
+         </div>
+         {/* Center indicator line */}
+         <div className="absolute bottom-0 left-1/2 w-0.5 h-4 bg-red-500/0 transform -translate-x-1/2 pointer-events-none"></div> 
+      </div>
+    </div>
+  );
 };
 
 export default TimelineView;
