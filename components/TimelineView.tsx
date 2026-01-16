@@ -42,31 +42,10 @@ const TimelineView: React.FC = () => {
 
   return (
     <div className="w-full h-full relative bg-[#fdfbf7]">
-      {/* Fixed Year Picker Navigation (Moved to Top) */}
-      <div className="absolute top-20 left-0 w-full bg-white/80 backdrop-blur-md border-b border-stone-200 z-30 py-3 px-4 flex justify-between items-center overflow-x-auto scrollbar-hide">
-        <div className="flex space-x-6 md:space-x-10 mx-auto">
-          {MEMORIES.map((m) => {
-             // Handle range years (e.g. 2017-2019) by taking the first 4 chars for display button
-             const displayYear = m.year.substring(0, 4);
-             const isActive = activeYear === m.year;
-             
-             return (
-              <button
-                key={m.year}
-                onClick={() => scrollToMemory(m.year)}
-                className={`text-sm md:text-base font-serif transition-all duration-300 ${isActive ? 'text-stone-900 font-bold scale-110' : 'text-stone-400 hover:text-stone-600'}`}
-              >
-                {displayYear}
-              </button>
-             );
-          })}
-        </div>
-      </div>
-
       {/* Scrollable Container */}
       <div 
         ref={containerRef}
-        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth scrollbar-hide pt-32"
+        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth scrollbar-hide"
       >
         {MEMORIES.map((memory, index) => {
           const isSecret = memory.tag === 'Secret';
@@ -128,7 +107,7 @@ const TimelineView: React.FC = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, y: [0, 10, 0] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 2 }}
-                  className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+                  className="absolute bottom-24 md:bottom-10 left-1/2 transform -translate-x-1/2"
                 >
                   <ChevronDown className="w-6 h-6 opacity-50" />
                 </motion.div>
@@ -137,8 +116,29 @@ const TimelineView: React.FC = () => {
           );
         })}
         
-        {/* Bottom padding */}
-        <div className="h-10 w-full bg-[#fdfbf7]"></div>
+        {/* Bottom padding to allow last item to be centered comfortably */}
+        <div className="h-24 w-full bg-[#fdfbf7]"></div>
+      </div>
+
+      {/* Fixed Year Picker Navigation (Reverted to Bottom) */}
+      <div className="absolute bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-stone-200 z-30 py-3 px-4 flex justify-between items-center overflow-x-auto scrollbar-hide">
+        <div className="flex space-x-6 md:space-x-10 mx-auto">
+          {MEMORIES.map((m) => {
+             // Handle range years (e.g. 2017-2019) by taking the first 4 chars for display button
+             const displayYear = m.year.substring(0, 4);
+             const isActive = activeYear === m.year;
+             
+             return (
+              <button
+                key={m.year}
+                onClick={() => scrollToMemory(m.year)}
+                className={`text-sm md:text-base font-serif transition-all duration-300 ${isActive ? 'text-stone-900 font-bold scale-110' : 'text-stone-400 hover:text-stone-600'}`}
+              >
+                {displayYear}
+              </button>
+             );
+          })}
+        </div>
       </div>
     </div>
   );

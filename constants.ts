@@ -76,4 +76,6 @@ export const MEMORIES: Memory[] = [
   }
 ];
 
-export const MUSIC_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; // Placeholder
+// Reliable emotional piano track (Kai Engel - Sentinel) from Free Music Archive
+// This is stable, high quality, and fits the vibe perfectly.
+export const MUSIC_URL = "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Kai_Engel/Satin/Kai_Engel_-_04_-_Sentinel.mp3";
